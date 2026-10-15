@@ -52,7 +52,7 @@ npm run preview
 npm test
 ```
 
-构建结果在 `dist/`，可部署至静态托管服务。本工作区的 Sites 尚未启用，当前提供本地预览与完整代码。
+构建结果在 `dist/`，公开版本通过 GitHub Pages 部署。以下说明针对 `npm run dev` 的本地草稿工作区，线上版的文章以统一公开来源为准。
 
 ## 已实现功能
 

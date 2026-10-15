@@ -22,14 +22,14 @@ export function fetchPublication({force=false}={}){
   pending=(async()=>{
     const issues=[];
     for(let page=1;page<=5;page++){
-      const endpoint=`https://api.github.com/repos/${PUBLICATION.owner}/${PUBLICATION.repo}/issues?state=open&labels=article&per_page=100&page=${page}`;
+      const endpoint=`https://api.github.com/repos/${PUBLICATION.owner}/${PUBLICATION.repo}/issues?state=open&labels=article&per_page=100&page=${page}${force?'&refresh='+Date.now():''}`;
       const response=await fetch(endpoint,{cache:'no-store',credentials:'omit',headers:{Accept:'application/vnd.github+json'},signal:AbortSignal.timeout(15000)});
       if(!response.ok)throw new Error(response.status===403||response.status===429?'更新请求暂时受限，稍后重试即可。':'暂时无法连接文章源，请稍后重试。');
       const batch=await response.json();if(!Array.isArray(batch))throw new Error('文章源格式异常');
       issues.push(...batch);if(batch.length<100)break;
     }
     let config={site:snapshot.site,author:snapshot.author};
-    try{const response=await fetch(`https://raw.githubusercontent.com/${PUBLICATION.owner}/${PUBLICATION.repo}/main/public/site.json`,{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(8000)});if(response.ok)config=await response.json();}catch{/* site profile can use the deployed fallback */}
+    try{const response=await fetch(`https://raw.githubusercontent.com/${PUBLICATION.owner}/${PUBLICATION.repo}/main/public/site.json${force?'?refresh='+Date.now():''}`,{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(8000)});if(response.ok)config=await response.json();}catch{/* site profile can use the deployed fallback */}
     const publication=clean(buildPublication(issues,config));
     try{localStorage.setItem(CACHE_KEY,JSON.stringify({at:Date.now(),publication}));}catch{/* fresh public data remains readable when browser storage is full */}
     return publication;
