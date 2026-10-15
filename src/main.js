@@ -2,12 +2,14 @@ import './style.css';
 import './features.css';
 import './responsive.css';
 import './public.css';
+import './document-publisher.css';
 import {marked} from 'marked';
 import DOMPurify from 'dompurify';
 import {art} from './art.js';
 import {shell,arrow,searchIcon} from './shell.js';
 import {STORE_KEY,escapeHTML as esc,freshState,visiblePosts,filterPosts,validateBackup,readingMinutes,dateTime,uid,localDate} from './model.js';
 import {createStudio} from './studio.js';
+import {createDocumentPublisher} from './document-publisher.js';
 import {PUBLIC_MODE,publicInitialState,fetchPublication} from './public-client.js';
 import {repositoryUrl,newArticleUrl,applyPublication} from './publication.js';
 
@@ -118,7 +120,8 @@ window.addEventListener('afterprint',()=>document.body.classList.remove('printin
 const studio=createStudio({getState:()=>state,commit,replaceState,showDialog,closeDialog,toast,mount,render,markdown,cover,download,esc,getMode:()=>modalMode});
 function showHelp(){showDialog(`<span class="section-number">MADE TO BE USED</span><h2 id="dialog-title">把博客用起来<span class="red-dot">.</span></h2><div class="help-grid"><section><h3>阅读与发现</h3><p>全文搜索支持日期区间，分类、标签、收藏与未读可组合筛选。支持四种排序、网格与列表、分页、随机阅读。</p><p>文章内有目录、字号调节、夜间模式、阅读进度、喜欢、收藏、已读、相关推荐、Markdown 下载及打印 PDF。</p></section><section><h3>写作与管理</h3><p>打开「创作中心」新建或编辑文章。Markdown 实时预览，支持封面图片、标签、置顶、草稿及定时发布。编辑缓冲区自动保存；点击保存后才会修改文章。</p><p>文章和评论可移入回收站并恢复。可自定义作者资料与站点信息，导出 JSON 全量备份，再合并导入。</p></section><section><h3>存储与发布</h3><p>这是本地优先版本，所有修改、留言与阅读统计存于当前浏览器。请定期导出备份。清除浏览器数据或更换设备不会保留这些内容。</p><p>创作中心没有账号权限体系；本地修改不会影响其他访客。定时发布在浏览器打开后按设定时间显示，日期使用北京时间。</p></section><section><h3>快捷键</h3><p><kbd>/</kbd> 搜索文章<br><kbd>Esc</kbd> 关闭弹窗<br><kbd>Ctrl / ⌘ + S</kbd> 在编辑器保存文章</p><p>RSS 提供当前内容的 XML 文件快照。跨设备同步、公开评论和邮件订阅需要接入服务端。</p></section></div><button class="primary-button" data-action="studio">打开创作中心 ↗</button>`,'help-dialog');}
 
-function showPublicAuthor(){showDialog(`<span class="section-number">WRITE ONCE, READ EVERYWHERE</span><h2 id="dialog-title">写下来，让更多人看见<span class="red-dot">.</span></h2><p class="reader-subtitle">文章统一保存在你的 GitHub 仓库。发布后，所有访客读取同一份内容。</p><ol class="publish-guide"><li>点击「发表新文章」，登录 <strong>NagasakiSaki</strong> 的 GitHub 账号。</li><li>填写标题与 Markdown 正文，可修改顶部的分类、标签和简介。</li><li>点击 GitHub 的 <strong>Create / Submit new issue</strong> 公开发表，再回到博客点击「刷新文章」。</li><li>修改已发表的 Issue 会更新文章；关闭 Issue 会将文章从博客下架。</li></ol><p class="local-note">只有仓库所有者创建且带 article 标签的开放文章会出现在博客。GitHub 中提交的正文是公开内容，请把私人草稿保留在本地。</p><div class="publication-actions"><a class="primary-button" href="${newArticleUrl}" target="_blank" rel="noopener noreferrer">发表新文章 ↗</a><a class="secondary-button" href="${repositoryUrl}/issues?q=is%3Aissue+author%3ANagasakiSaki+label%3Aarticle" target="_blank" rel="noopener noreferrer">管理已发表文章 ↗</a></div><p class="local-note">修改作者资料：<a class="publication-source" href="${repositoryUrl}/edit/main/public/site.json" target="_blank" rel="noopener noreferrer">编辑站点介绍 ↗</a>。保存到 main 后刷新博客即可读取。</p>`, 'public-author-dialog');}
+const documentPublisher=createDocumentPublisher({showDialog,toast,esc,download,getMode:()=>modalMode});
+function showPublicAuthor(){showDialog(`<span class="section-number">WRITE ONCE, READ EVERYWHERE</span><h2 id="dialog-title">写下来，让更多人看见<span class="red-dot">.</span></h2><p class="reader-subtitle">文章统一保存在你的 GitHub 仓库。发布后，所有访客读取同一份内容。</p><ol class="publish-guide"><li>点击「发表新文章」，登录 <strong>NagasakiSaki</strong> 的 GitHub 账号。</li><li>填写标题与 Markdown 正文，可修改顶部的分类、标签和简介。</li><li>点击 GitHub 的 <strong>Create / Submit new issue</strong> 公开发表，再回到博客点击「刷新文章」。</li><li>修改已发表的 Issue 会更新文章；关闭 Issue 会将文章从博客下架。</li></ol><p class="local-note">只有仓库所有者创建且带 article 标签的开放文章会出现在博客。GitHub 中提交的正文是公开内容，请把私人草稿保留在本地。</p><div class="publication-actions"><button class="primary-button" data-action="document-publish">上传文档发表 ↥</button><a class="secondary-button" href="${newArticleUrl}" target="_blank" rel="noopener noreferrer">发表新文章 ↗</a><a class="secondary-button" href="${repositoryUrl}/issues?q=is%3Aissue+author%3ANagasakiSaki+label%3Aarticle" target="_blank" rel="noopener noreferrer">管理已发表文章 ↗</a></div><p class="local-note">修改作者资料：<a class="publication-source" href="${repositoryUrl}/edit/main/public/site.json" target="_blank" rel="noopener noreferrer">编辑站点介绍 ↗</a>。保存到 main 后刷新博客即可读取。</p>`, 'public-author-dialog');}
 
 let publicUpdateMessage='正在连接公开文章源……',publicUpdateError=false;
 function publicStatus(){const label=$('#public-update-status');if(label){label.textContent=publicUpdateMessage;label.parentElement.classList.toggle('is-error',publicUpdateError);}}
@@ -142,7 +145,7 @@ document.addEventListener('click',async e=>{
   const a=b.dataset.action;
   if(a==='close'){preserveEditor();closeDialog();}
   if(a==='search')showSearch();if(a==='archive')showArchive();if(a==='about')showAbout();if(a==='library')showLibrary();if(a==='tags')showTags();if(a==='help'){PUBLIC_MODE?showPublicAuthor():showHelp();}
-  if(a==='public-author')showPublicAuthor();if(a==='refresh-public')refreshPublic(true);
+  if(a==='document-publish')documentPublisher.show();if(a==='public-author')showPublicAuthor();if(a==='refresh-public')refreshPublic(true);
   if(a==='studio')askLeaveEditor(()=>studio.show());
   if(a==='theme'){if(commit(s=>s.prefs.theme=document.documentElement.dataset.theme==='dark'?'paper':'dark'))theme();}
   if(a==='reader-smaller'||a==='reader-larger'){const sizes=[14,16,18,20],i=sizes.indexOf(state.prefs.fontSize);if(commit(s=>s.prefs.fontSize=sizes[Math.max(0,Math.min(3,i+(a==='reader-larger'?1:-1)))])){theme();$('#font-size-label').textContent=state.prefs.fontSize+'px';}}
